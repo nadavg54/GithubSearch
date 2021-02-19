@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	_ "flag"
 	"io/ioutil"
 	"net/http"
@@ -11,9 +12,9 @@ import (
 
 func main() {
 
-	//var typeflag = flag.String("type", "Code", "resource to search: Topics,Issues,PullRequests,Discussions,Code,Commits,Users,Packages,Wikis")
-	//var keywork = flag.String("text","","text to find")
-	//var langauge = flag.String("lang","java","search only this language")
+	var typeflag = flag.String("type", "Code", "resource to search: Topics,Issues,PullRequests,Discussions,Code,Commits,Users,Packages,Wikis")
+	var keywork = flag.String("text", "", "text to find")
+	var langauge = flag.String("lang", "java", "search only this language")
 
 	token := os.Getenv("GOTOKEN")
 	client := &http.Client{}

@@ -3,7 +3,10 @@ package GithubSearch
 import (
 	"net/url"
 	"reflect"
+	"regexp"
 )
+
+type Query string
 
 type QueryBuilder struct {
 	Lang      string
@@ -11,6 +14,7 @@ type QueryBuilder struct {
 	Extension string
 	InFile    bool
 	InPath    bool
+	QueryStr  Query
 }
 
 var multiNamesQualifiers = map[string]string{
@@ -23,7 +27,7 @@ func (qb *QueryBuilder) buildQuery() string {
 	var res string
 	qbVal := reflect.ValueOf(qb).Elem()
 	qbType := reflect.ValueOf(qb).Elem().Type()
-
+	re := regexp.MustCompile("\\s+")
 	for i := 0; i < qbType.NumField(); i++ {
 		currType := qbType.Field(i)
 		currVal := qbVal.Field(i)
@@ -48,11 +52,24 @@ func (qb *QueryBuilder) buildQuery() string {
 			{
 				str := (currVal.Interface()).(string)
 				if str != "" {
+					if re.MatchString(str) {
+						str = "\"" + str + "\""
+					}
 					res += "+" + qualifierName + ":" + str
+
 				}
+			}
+		case "Query":
+			{
+				strval := string(currVal.Interface().(Query))
+				if re.MatchString(strval) {
+					strval = "\"" + strval + "\""
+				}
+				res = strval + res
 			}
 		}
 	}
+	println("res is " + res)
 	return url.QueryEscape(res)
 }
 

@@ -8,15 +8,16 @@ import (
 
 func TestQueryBuilder_buildQuery(t *testing.T) {
 	builder := QueryBuilder{
-		Lang:      "javascript",
+		Lang:      "java script",
 		Path:      "app/public",
 		Extension: "",
 		InFile:    true,
 		InPath:    false,
+		QueryStr:  "my query",
 	}
 
-	want := "+lang:javascript+path:app/public+in:file"
-	got, _ := url.QueryUnescape(builder.buildQuery())
+	want := strings.ToLower(url.QueryEscape("\"my query\"+lang:\"java script\"+path:app/public+in:file"))
+	got := strings.ToLower(builder.buildQuery())
 	got = strings.ToLower(got)
 
 	if got != want {
@@ -24,10 +25,3 @@ func TestQueryBuilder_buildQuery(t *testing.T) {
 	}
 
 }
-
-//https://github.com/search?q=user:github+extension:rb&type=Code
-//https://github.com/search?utf8=%E2%9C%93&q=org:github+extension:js&type=Code
-//https://github.com/search?q=repo:mozilla%2Fshumway+extension:as&type=Code
-//https://github.com/search?utf8=%E2%9C%93&q=octocat+filename:readme+path:%2F&type=Code
-//https://github.com/search?q=form+path:cgi-bin+language:perl&type=Code
-//https://github.com/search?q=console+path:app/public%22+language:javascript&type=Code
