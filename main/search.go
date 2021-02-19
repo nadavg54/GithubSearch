@@ -15,11 +15,11 @@ func main() {
 	//var keywork = flag.String("text","","text to find")
 	//var langauge = flag.String("lang","java","search only this language")
 
-	//token := os.Getenv("GOTOKEN")
+	token := os.Getenv("GOTOKEN")
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", "https://api.github.com/search/code?q=\"github+api\"+language:go", nil)
 	req.Header.Set("Accept", "application/vnd.github.v3.text-match+json")
-	req.Header.Set("Authorization", "token a5fc00bdbc386349362ddac9b874e465d9516fb0")
+	req.Header.Set("Authorization", "token "+token)
 	res, err := client.Do(req)
 
 	if err != nil {
