@@ -1,15 +1,17 @@
 package GithubSearch
 
 import (
+	"log"
 	"net/url"
 	"reflect"
 	"regexp"
+	"strings"
 )
 
 type Query string
 
 type QueryBuilder struct {
-	Lang      string
+	Language  string
 	Path      string
 	Extension string
 	InFile    bool
@@ -22,7 +24,7 @@ var multiNamesQualifiers = map[string]string{
 	"InFile": "In:File",
 }
 
-func (qb *QueryBuilder) buildQuery() string {
+func (qb *QueryBuilder) BuildQuery() string {
 
 	var res string
 	qbVal := reflect.ValueOf(qb).Elem()
@@ -45,7 +47,7 @@ func (qb *QueryBuilder) buildQuery() string {
 			{
 				b := (currVal.Interface()).(bool)
 				if b {
-					res += "+" + qualifierName
+					res += " " + qualifierName
 				}
 			}
 		case "string":
@@ -55,7 +57,7 @@ func (qb *QueryBuilder) buildQuery() string {
 					if re.MatchString(str) {
 						str = "\"" + str + "\""
 					}
-					res += "+" + qualifierName + ":" + str
+					res += " " + qualifierName + ":" + str
 
 				}
 			}
@@ -69,8 +71,8 @@ func (qb *QueryBuilder) buildQuery() string {
 			}
 		}
 	}
-	println("res is " + res)
-	return url.QueryEscape(res)
+	log.Println("res is " + res)
+	return url.QueryEscape(strings.ToLower(res))
 }
 
 //https://github.com/search?q=user:github+extension:rb&type=Code
