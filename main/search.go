@@ -19,35 +19,14 @@ func init() {
 
 func main() {
 
-	path := flag.String("path", "", "search files inside this path")
-	infile := flag.Bool("infile", false, "search inside file content")
-	inpath := flag.Bool("inpath", false, "search inside the path string")
-	lang := flag.String("lang", "", "search only this language")
-	query := flag.String("query", "", "main query string")
-	extension := flag.String("extension", "", "search only inside files with this extension")
-
-	flag.Parse()
+	path, infile, inpath, lang, query, extension := getParams()
 
 	if *query == "" {
 		print("--query is a mandatory param")
 		os.Exit(1)
 	}
 
-	q := GithubSearch.QueryBuilder{
-		Language:  *lang,
-		Path:      *path,
-		Extension: *extension,
-		InFile:    *infile,
-		InPath:    *inpath,
-		QueryStr:  GithubSearch.Query(*query),
-	}
-
-	token := os.Getenv("GOTOKEN")
-	client := &http.Client{}
-	log.Println("request url is " + "" + q.BuildQuery())
-	req, _ := http.NewRequest("GET", "https://api.github.com/search/code?q="+q.BuildQuery(), nil)
-	req.Header.Set("Accept", "application/vnd.github.v3.text-match+json")
-	req.Header.Set("Authorization", "token "+token)
+	client, req, _ := buildInitialRequest(lang, path, extension, infile, inpath, query)
 	res, err := client.Do(req)
 
 	if err != nil {
@@ -73,11 +52,13 @@ func main() {
 	var items []interface{}
 	items = val["items"].([]interface{})
 
+	cf := GithubSearch.ContentFetcher{
+		Client: client,
+	}
 	//var buff map[string]interface{}
 	for _, v := range items {
 
 		item := v.(map[string]interface{})
-
 		textMatches := item["text_matches"].([]interface{})
 		for _, v := range textMatches {
 			textMatch := v.(map[string]interface{})
@@ -130,6 +111,37 @@ func main() {
 	//
 	//
 	//}
+}
+
+func buildInitialRequest(lang *string, path *string, extension *string, infile *bool, inpath *bool, query *string) (*http.Client, *http.Request, error) {
+	q := GithubSearch.QueryBuilder{
+		Language:  *lang,
+		Path:      *path,
+		Extension: *extension,
+		InFile:    *infile,
+		InPath:    *inpath,
+		QueryStr:  GithubSearch.Query(*query),
+	}
+
+	token := os.Getenv("GOTOKEN")
+	client := &http.Client{}
+	log.Println("request url is " + "" + q.BuildQuery())
+	req, _ := http.NewRequest("GET", "https://api.github.com/search/code?q="+q.BuildQuery(), nil)
+	req.Header.Set("Accept", "application/vnd.github.v3.text-match+json")
+	req.Header.Set("Authorization", "token "+token)
+	return client, req, _
+}
+
+func getParams() (*string, *bool, *bool, *string, *string, *string) {
+	path := flag.String("path", "", "search files inside this path")
+	infile := flag.Bool("infile", false, "search inside file content")
+	inpath := flag.Bool("inpath", false, "search inside the path string")
+	lang := flag.String("lang", "", "search only this language")
+	query := flag.String("query", "", "main query string")
+	extension := flag.String("extension", "", "search only inside files with this extension")
+
+	flag.Parse()
+	return path, infile, inpath, lang, query, extension
 }
 
 func printAllContent(items []interface{}, token string, client *http.Client) {
